@@ -11,6 +11,8 @@
 const ONETHINK_VERSION    = '1.0.131218';
 const ONETHINK_ADDON_PATH = './Addons/';
 
+
+
 /**
  * 系统公共库文件
  * 主要定义系统公共函数库
@@ -1006,4 +1008,9 @@ function isBoss(){
 
 function getUser(){
     return session('user_auth');
+}
+
+
+function service($name){
+	return D($name ,"Service");
 }
