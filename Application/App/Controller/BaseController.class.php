@@ -12,58 +12,32 @@ class BaseController extends Controller {
 	protected $userId;
 	protected $access_token;
 	protected $phone;
+	protected $wx_open_id;
+	const AUTH_TOKEN = 'AuthToken';
 
 	public function __construct(){
 		$chars = 'ABCDEFGHJKMNPQRSTUVWXYZ0123456789ABCDEFGHJKMNPQRSTUVWXYZ0123456789ABCDEFGHJKMNPQRSTUVWXYZ0123456789';
 		$chars = str_shuffle($chars);
 		$this->access_token = sha1(substr($chars,0,32));
-		$accessToken = $this->request->getHeader(GlobalConsts::AUTH_TOKEN);
+		$accessToken = I(self::AUTH_TOKEN);
 
 		if (!$accessToken) {
-			//从请求参数里面再去拿auth_token
-			$accessToken = $this->request->getQuery(GlobalConsts::AUTH_TOKEN);
+			$this->returnApiError("AuthToken不能为空");
+		}
 
-			if (!$accessToken) {
-				//如果请求参数没有再去raw里面去拿auth_token
-				$params = $this->request->getJsonRawBody(true);
-				if (!empty($params[GlobalConsts::AUTH_TOKEN])) {
-					$accessToken = $params[GlobalConsts::AUTH_TOKEN];
-				}
-			}
-		}
-		if (empty($accessToken) && config('common.isDebug')) {
-			$accessToken = config('common.auth_token');
-		}
-		$authToken = new \Dto\AuthToken();
 		try {
-			$infoJson = rtrim($this->crypt->decryptBase64($accessToken), "\0");
+			$infoJson = rtrim(base64_decode($accessToken), "\0");
 		} catch (\Phalcon\Exception $e) {
-			throw new HTTPException(ErrorCodeConsts::ERROR_CODE_USER_LOGIN_AUTHTOKEN_EXPIRED);
+			throw_exception("AuthToken已经失效", $type='ThinkException', $code=0);
 		}
 		$info = json_decode($infoJson, true);
-		if (json_last_error() != JSON_ERROR_NONE) {
-			throw new HTTPException(ErrorCodeConsts::ERROR_CODE_USER_LOGIN_AUTHTOKEN_EXPIRED);
-		}
-		BeanUtil::copy($info, $authToken);
-		$authToken->setDevice($this->device);
-		$ackCode = $authToken->generateAckCode();
-		if ($authToken->ackCode != $ackCode) {
-			throw new HTTPException(ErrorCodeConsts::ERROR_CODE_USER_LOGIN_AUTHTOKEN_EXPIRED);
+		if (json_last_error() != 0) {
+			throw_exception("AuthToken已经失效", $type='ThinkException', $code=0);
 		}
 
-		$this->userId = $authToken->userId;
-		$this->pharmacist_id = $authToken->pharmacistId;
-		$this->site_id = $authToken->siteId;
-		$this->store_id = $authToken->storeId;
-		$this->store_user_id = $authToken->storeUserId;
-		$this->phone = $authToken->phone;
-
-		if (!$this->site_id){
-			$pharmacist = AccountService::getPharmacistInfoByUserId($this->userId);
-			$this->site_id = $pharmacist->site_id;
-		}else{
-			//$log->info('onConstruct-----7------$authToken='.json_encode($authToken));
-		}
+		$this->userId = $info['userId'];
+		$this->phone = $info['phone'];
+		$this->wx_open_id = $info['wx_open_id'];
 	}
 
 	public function getApiUrl($url, $vars = '')
