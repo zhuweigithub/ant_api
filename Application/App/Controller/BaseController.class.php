@@ -16,6 +16,10 @@ class BaseController extends Controller {
 	const AUTH_TOKEN = 'AuthToken';
 
 	public function __construct(){
+        //user控制器用于用户验证，返回token，所以无需校验
+		if( strpos(get_class($this),'UserController') ){
+			return;
+		}
 		$chars = 'ABCDEFGHJKMNPQRSTUVWXYZ0123456789ABCDEFGHJKMNPQRSTUVWXYZ0123456789ABCDEFGHJKMNPQRSTUVWXYZ0123456789';
 		$chars = str_shuffle($chars);
 		$this->access_token = sha1(substr($chars,0,32));
@@ -106,9 +110,9 @@ class BaseController extends Controller {
 		if(!empty($data)){
 			$data = explode(',',$data);
 			foreach($data as $k=>$v){
-				if((!isset($_POST[$k]))||(empty($_POST[$k]))){
-					if($_POST[$k]!==0 && $_POST[$k]!=='0'){
-						$this->returnApiError($k.'值为空！');
+				if((!isset($_POST[$v]))||(empty($_POST[$v]))){
+					if($_POST[$v]!==0 && $_POST[$v]!=='0'){
+						$this->returnApiError($v.'值为空！');
 					}
 				}
 			}
@@ -129,9 +133,9 @@ class BaseController extends Controller {
 		if(!empty($data)){
 			$data = explode(',',$data);
 			foreach($data as $k=>$v){
-				if((!isset($_GET[$k]))||(empty($_GET[$k]))){
-					if($_GET[$k]!==0 && $_GET[$k]!=='0'){
-						$this->returnApiError($k.'值为空！');
+				if((!isset($_GET[$v]))||(empty($_GET[$v]))){
+					if($_GET[$v]!==0 && $_GET[$v]!=='0'){
+						$this->returnApiError($v.'值为空！');
 					}
 				}
 			}
@@ -141,4 +145,5 @@ class BaseController extends Controller {
 			return $data;
 		}
 	}
+
 }

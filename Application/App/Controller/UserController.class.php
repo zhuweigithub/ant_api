@@ -1,12 +1,20 @@
 <?php
 namespace App\Controller;
+use App\Services\UserService;
 use Think\Controller;
 class UserController extends BaseController {
 
+	private $userService;
 
-	public function login($phone, $password, $loginType = self::LOGIN_TYPE_1, $device = null)
+    public function __construct(){
+		$this->userService = new UserService();
+	}
+	public function login()
 	{
-		//这里做微信授权操作
+		$params = $this->checkDataGet('wx_open_id');
+		$result = $this->userService->userVerify($params['wx_open_id']);
+
+
 	}
 	public function userToken(){
 		$validation = new UserTokenValidation();
