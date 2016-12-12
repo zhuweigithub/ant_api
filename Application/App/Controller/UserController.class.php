@@ -11,8 +11,19 @@ class UserController extends BaseController {
 	}
 	public function login()
 	{
-		$params = $this->checkDataGet('wx_open_id');
-		$result = $this->userService->userVerify($params['wx_open_id']);
+		/*$data                   = array(
+			'wx_open_id' => $result->openid
+		, 'wx_union_id'  => $userinfo->unionid
+		, 'buyer_nick'   => $userinfo->nickname
+		, 'sex'          => $userinfo->sex
+		, 'province'     => $userinfo->province
+		, 'city'         => $userinfo->city
+		, 'buyer_img'    => $userinfo->headimgurl
+		);*/
+		$params = I('get.');
+		fb($params);
+		$result = $this->userService->userVerify($params);
+
 
 
 	}
