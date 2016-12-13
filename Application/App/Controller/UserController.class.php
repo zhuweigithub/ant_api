@@ -9,23 +9,27 @@ class UserController extends BaseController {
     public function __construct(){
 		$this->userService = new UserService();
 	}
+
+
 	public function login()
 	{
-		/*$data                   = array(
-			'wx_open_id' => $result->openid
-		, 'wx_union_id'  => $userinfo->unionid
-		, 'buyer_nick'   => $userinfo->nickname
-		, 'sex'          => $userinfo->sex
-		, 'province'     => $userinfo->province
-		, 'city'         => $userinfo->city
-		, 'buyer_img'    => $userinfo->headimgurl
-		);*/
-		$params = I('get.');
-		fb($params);
+		$params = $_POST;
+		print_r($params);
+		echo "-------";
+		foreach($params as $a=>$b){
+			print_r($b);
+			echo "-------";
+		}
+		print_r($params);exit;
+
+		//$params = I('get.');
+		$params = $this->getRequest('wx_open_id');
+		print_r($params);exit;
+	//	$params = json_decode($params,true);
+		if( !$params || empty($params['wx_open_id'])){
+			return $this->returnApiError("请求参数错误！");
+		}
 		$result = $this->userService->userVerify($params);
-
-
-
 	}
 	public function userToken(){
 		$validation = new UserTokenValidation();

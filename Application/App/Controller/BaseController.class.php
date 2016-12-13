@@ -13,6 +13,8 @@ class BaseController extends Controller {
 	protected $access_token;
 	protected $phone;
 	protected $wx_open_id;
+	private $_postValue = null;
+
 	const AUTH_TOKEN = 'AuthToken';
 
 	public function __construct(){
@@ -146,4 +148,90 @@ class BaseController extends Controller {
 		}
 	}
 
+	public function getRequestParam($val = null, $strict = 0)
+	{
+		//return $postStr = $this->getPost($val);
+		$data = $this->getRequest();
+		if (!$val) {
+			return $data;
+		}
+		if (isset($data[$val])) {
+			if (is_array($data[$val])) {
+				return $data[$val];
+			} else {
+				return trim($data[$val]);
+			}
+
+		}
+		if ($strict) {
+			return;
+		}
+
+		return '';
+	}
+	/**
+	 * 获取接口请求内容
+	 */
+	public function getRequest()
+	{
+		$postStr = $this->getPost();
+		dump($postStr);
+		$postStr = $postStr[0];
+		print_r($postStr);
+		if (!is_array($this->_postValue)) {
+			echo 11;
+			if (!empty($postStr)) {
+				echo 22;
+				//json传递格式
+				$this->_postValue = json_decode($postStr, true);
+				echo 33;
+				print_r($postStr);
+			} else {
+				//直接post变量格式
+				$this->_postValue = $postStr;
+			}
+		}
+
+		return $this->_postValue;
+	}
+	/**
+	 * $_POST
+	 */
+	public function getPost()
+	{
+		return I("post.");
+	}
+
+	/**
+	 * $_GET
+	 */
+	public function getQueryParam($value = '')
+	{
+		return I("get.".$value);
+	}
+
+	/**
+	 * @ 把post参数变成字符串
+	 * @param $params post参数
+	 * @return null|string
+	 */
+	private function assemble($params)
+	{
+		if (!is_array($params)){
+			return '';
+		}
+		ksort($params);
+		$paramstr = '';
+		foreach ($params as $key => $value)
+		{
+			if ($value == ""){
+				continue;
+			}
+			else {
+				$paramstr .= $key . (is_array($value) ? $this->assemble($value) : $value);
+			}
+		}
+
+		return $paramstr;
+	}
 }
