@@ -1,9 +1,10 @@
 <?php
 namespace App\Controller;
 use Think\Controller;
-class IndexController extends Controller {
+class IndexController extends BaseController {
     public function index(){
-        $this->show('111');
+		echo 123;
+       return 111;
     }
 	public function test(){
 		//$auth_token = new \Model\Dto\AuthToken();

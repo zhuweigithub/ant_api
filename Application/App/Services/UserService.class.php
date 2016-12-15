@@ -6,7 +6,7 @@
  * Time: 11:23
  */
 namespace App\Services;
-
+use App\Utils\SecurityUtil;
 
 class UserService
 {
@@ -20,47 +20,81 @@ class UserService
 		$this->_userDb = D("Users");
 	}
 
-	public function userVerify($params)
+	/**
+	 * @param $wx_open_id
+	 * @param $wx_union_id
+	 * @param $nickname
+	 * @param $sex
+	 * @param $province
+	 * @param $city
+	 * @param $headimgurl
+	 * @return array
+	 */
+	public function userVerify($wx_open_id, $wx_union_id, $nickname, $sex, $province, $city, $headimgurl)
 	{
-		$map['wx_open_id'] = $params['wx_open_id'];
+		$map['wx_open_id'] = $wx_open_id;
 		$result            = $this->_userDb->field('buyer_id,wx_open_id,status')->where($map)->find();
-		fb($result);
+		$buyer_id = "";
 		if (count($result) > 0) {
+			$buyer_id = $result['buyer_id'];
 			if ($result['status'] == self::USER_STATUS_BLACKLIST) {
-				return "用户被加入黑名单";
+				return array('statusCode' => -1, 'errMsg' => "用户被加入黑名单");
 			} elseif ($result['status'] == self::USER_STATUS_FROST) {
-				return "用户被冻结";
+				return array('statusCode' => -1, 'errMsg' => "用户被冻结");
 			}
-		} else {
-			//注册流程
-			$this->registerUser($params);
 		}
+		//注册更新流程
+		$userId = $this->registerUser($buyer_id,$wx_open_id, $wx_union_id, $nickname, $sex, $province, $city, $headimgurl);
+		//todo 生成token 未完成
+		$AuthToken = $this->getAuthToken($userId,$wx_open_id);
+		$token = array(
+			"AuthToken" => $AuthToken
+		);
+		return array('statusCode' => 0, 'AuthToken' => $token);
 	}
 
-	public function registerUser($params)
+	/**
+	 * @param $buyer_id
+	 * @param $wx_open_id
+	 * @param $wx_union_id
+	 * @param $nickname
+	 * @param $sex
+	 * @param $province
+	 * @param $city
+	 * @param $headimgurl
+	 * @return int|mixed
+	 */
+	public function registerUser($buyer_id,$wx_open_id, $wx_union_id, $nickname, $sex, $province, $city, $headimgurl)
 	{
-		/**
-		 * 		$unionid                = empty($userinfo->unionid) ? $userinfo->unionid : '';
-		$data                   = array(
-		'wx_open_id' => $result->openid
-		, 'wx_union_id'  => $userinfo->unionid
-		, 'buyer_nick'   => $userinfo->nickname
-		, 'sex'          => $userinfo->sex
-		, 'province'     => $userinfo->province
-		, 'city'         => $userinfo->city
-		, 'buyer_img'    => $userinfo->headimgurl
+		$id = 0;
+		$data = array(
+		  'wx_open_id'   => $wx_open_id
+		, 'wx_union_id'  => $wx_union_id
+		, 'buyer_nick'   => $nickname
+		, 'sex'           => $sex
+		, 'province'     => $province
+		, 'city'          => $city
+		, 'buyer_img'    => $headimgurl
 		);
-		 */
-		$data                   = array(
-		  'wx_open_id' => $params['wx_open_id']
-		, 'wx_union_id'  => $params->unionid
-		, 'buyer_nick'   => $userinfo->nickname
-		, 'sex'          => $userinfo->sex
-		, 'province'     => $userinfo->province
-		, 'city'         => $userinfo->city
-		, 'buyer_img'    => $userinfo->headimgurl
-		);
+		if( $buyer_id > 0){
+			$data['buyer_id'] = $buyer_id;
+			$this->_userDb->save($data);
+			$id = $buyer_id;
+		}else{
+			$id = $this->_userDb->add($data);
+		}
+		return $id;
 
+	}
+
+	/** 获取token
+	 * @param $userId
+	 * @param $wx_open_id
+	 * @return string
+	 */
+	private function getAuthToken($userId,$wx_open_id){
+		$security = new SecurityUtil();
+		return $security->getAuthToken($userId,$wx_open_id);
 	}
 }
 
