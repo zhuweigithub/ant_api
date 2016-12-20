@@ -15,7 +15,7 @@ return array(
 	'SSS' => '在线状态才能发送消息',
 
 
-    'URL_MODEL'            => 3, //URL模式
+    'URL_MODEL'             => 1, //URL模式
     'VAR_URL_PARAMS'       => '', // PATHINFO URL参数变量
     'URL_PATHINFO_DEPR'    => '/', //PATHINFO URL分割符
     /* 模板相关配置 */
